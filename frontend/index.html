@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Ignite Solana dApp</title>
+  <script src="https://unpkg.com/@solana/web3.js@1.94.1/lib/index.iife.js"></script>
+</head>
+<body>
+  <h1>Ignite Thirdweb Clone for Solana</h1>
+  <button id="connect">Connect Wallet</button>
+  <button id="airdrop" disabled>Airdrop 1 SOL</button>
+  <button id="transfer" disabled>Transfer 0.1 SOL to Server</button>
+  <pre id="log"></pre>
+  <script>
+    const provider = window.phantom?.solana;
+    const log = (msg) => document.getElementById('log').textContent += `\n${msg}`;
+
+    let publicKey;
+    document.getElementById('connect').onclick = async () => {
+      if (!provider) return alert('Phantom not found');
+      const resp = await provider.connect();
+      publicKey = resp.publicKey.toString();
+      log('Connected: ' + publicKey);
+      document.getElementById('airdrop').disabled = false;
+      document.getElementById('transfer').disabled = false;
+    };
+
+    document.getElementById('airdrop').onclick = async () => {
+      const res = await fetch('http://localhost:3001/airdrop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: publicKey })
+      });
+      const data = await res.json();
+      log('Airdrop tx: ' + data.signature);
+    };
+
+    document.getElementById('transfer').onclick = async () => {
+      const res = await fetch('http://localhost:3001/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: publicKey, amount: 0.1 })
+      });
+      const data = await res.json();
+      log('Transfer tx: ' + data.signature);
+    };
+  </script>
+</body>
+</html>
